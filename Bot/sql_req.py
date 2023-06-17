@@ -78,4 +78,16 @@ def get_lot(id_lot):
     return dict_lot
 
 
-get_lot('1')
+# get_lot('1')
+
+def get_name(name):
+    with con:
+        data1 = con.execute(f'''SELECT username, id  FROM auth_user''')
+        data1 = data1.fetchall()
+        print(data1)
+    id_name = ''
+    for x in data1:
+        if name in x:
+            id_name = x[1]
+    print(id_name)
+# get_name('jana')

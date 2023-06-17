@@ -1,5 +1,9 @@
+from django.contrib.sites import requests
 from django.db import models
 from django.contrib.auth.models import User
+from django.db.models.signals import pre_save
+from django.dispatch import receiver
+
 
 class Lots(models.Model):
     name = models.CharField(max_length=100)
@@ -10,6 +14,10 @@ class Lots(models.Model):
     publication = models.BooleanField(default=False)
     description = models.CharField(max_length=255)
     sold = models.BooleanField(default=False)
+    photo1 = models.ImageField(upload_to='img/%Y/%m/%d/', blank=True, verbose_name="Фото 1")
+    photo2 = models.ImageField(upload_to='img/%Y/%m/%d/', blank=True, verbose_name="Фото 2")
+    photo3 = models.ImageField(upload_to='img/%Y/%m/%d/', blank=True, verbose_name="Фото 3")
+    file_rar = models.FileField(upload_to='files/', null=True, blank=True)
 
     def __str__(self):
         return self.name
@@ -19,12 +27,6 @@ class Lots(models.Model):
         verbose_name_plural = "Лоты"
         ordering = ['date_start']
 
-
-class Photo(models.Model):
-    lot_id = models.ForeignKey('Lots', on_delete=models.PROTECT)
-    photo1 = models.ImageField(upload_to='img/%Y/%m/%d/', blank=True, verbose_name="Фото 1")
-    photo2 = models.ImageField(upload_to='img/%Y/%m/%d/', blank=True, verbose_name="Фото 2")
-    photo3 = models.ImageField(upload_to='img/%Y/%m/%d/', blank=True, verbose_name="Фото 3")
 
 class Bets(models.Model):
     prise = models.CharField(max_length=100)
@@ -39,3 +41,8 @@ class Bets(models.Model):
         verbose_name = "Ставка"
         verbose_name_plural = "Ставки"
 
+
+@receiver(pre_save, sender=Lots)  # декоратор с сигналом перед сохранением для модели ORDERS
+def f(sender, instance, **kwargs,):
+    print(sender)
+    print(instance)

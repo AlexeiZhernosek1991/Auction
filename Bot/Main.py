@@ -13,15 +13,6 @@ bot = telebot.TeleBot('6236696473:AAH_OGgS5jBhtDC7ZRA8lJwXHHZkQCfxZwg')
 id_user = []
 chat_grups = -742710832
 
-# def lot():
-#     lots = get_lots()
-#     for lot in lots:
-#         bot.send_media_group(-742710832, [telebot.types.InputMediaPhoto(open(photo, 'rb')) for photo in
-#                                           lot['photo']])
-#         bot.send_message(-742710832, f'Название - {lot["name"]} \n'
-#                                      f'стоимость - {lot["price"]} белоруских рублей')
-
-
 """Проверка базы данных на изменение"""
 
 
@@ -48,11 +39,11 @@ def keyb_lot2(id_lot, time_finish):
     keyb.row(but_start)
     but_auto = InlineKeyboardButton('Авто-ставка', callback_data=f'ast.10.{id_lot}')
     keyb.row(but_auto)
-    keyb.row(*(types.InlineKeyboardButton('Участвовать', callback_data=f'#{id_lot}'),
-               types.InlineKeyboardButton('⏰', callback_data=f'*{time_finish}'),
+    keyb.row(*(types.InlineKeyboardButton('⏰', callback_data=f'*{time_finish}'),
                types.InlineKeyboardButton('😱', callback_data='info')
                ))
     return keyb
+
 
 def post_lots():
     chat_grup = -742710832
@@ -122,18 +113,21 @@ def query_handler(call):
             bot.answer_callback_query(call.id, f"Аукцион завершился", show_alert=True)
     elif call.data == 'info':
         bot.answer_callback_query(call.id, f"Справочная информация", show_alert=True)
+    elif call.data[0] == '$':
+        list_data = call.data.split('.')
+        print(list_data)
 
 
-def start_bot():
-    print("Ready")
-    bot.infinity_polling()
-
-
-t1 = threading.Thread(target=start_bot)
-t2 = threading.Thread(target=send_lot_in_group)
-
-t1.start()
-t2.start()
+# def start_bot():
+#     print("Ready")
+#     bot.infinity_polling()
+#
+#
+# t1 = threading.Thread(target=start_bot)
+# t2 = threading.Thread(target=send_lot_in_group)
+#
+# t1.start()
+# t2.start()
 
 # print("Ready")
 # bot.infinity_polling()
