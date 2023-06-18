@@ -27,10 +27,9 @@ con = sl.connect('D:\Пайтон\Auction\my_auction\db.sqlite3', check_same_thr
 def get_lots():
     with con:
         data1 = con.execute(f'''SELECT bd_auction_lots.name, bd_auction_lots.price, 
-                                   bd_auction_lots.date_finish, bd_auction_lots.id, bd_auction_photo.photo1, 
-                                   bd_auction_photo.photo2, bd_auction_photo.photo3 
-                                   FROM bd_auction_lots JOIN bd_auction_photo ON 
-                                   bd_auction_lots.id = bd_auction_photo.lot_id_id
+                                   bd_auction_lots.date_finish, bd_auction_lots.id, bd_auction_lots.photo1, 
+                                   bd_auction_lots.photo2, bd_auction_lots.photo3 
+                                   FROM bd_auction_lots
                                    WHERE bd_auction_lots.publication = 0''')
         data1 = data1.fetchall()
     # print(data1)
@@ -41,13 +40,39 @@ def get_lots():
         dict_lot['price'] = i[1]
         dict_lot['time_finish'] = i[2]
         dict_lot['id'] = i[3]
-        dict_lot['photo'] = list(i[4:])
+        list_photo = []
+        for photo in list(i[4:]):
+            if photo != '':
+                list_photo.append(photo)
+        dict_lot['photo'] = list_photo
         list_dict_lots.append(dict_lot)
     print(list_dict_lots)
     return list_dict_lots
 
 
 # get_lots()
+
+def reg_user_byers(tg_id):
+    sql_insert = f"INSERT INTO bd_auction_user_buyer (tg_id, strike_count) values(?,?)"
+    with con:
+        con.execute(sql_insert, (str(tg_id), 0))
+    return True
+
+
+# reg_user_byers(1)
+
+def get_user_byers(tg_id):
+    with con:
+            data1 = con.execute(f'''SELECT * FROM bd_auction_user_buyer WHERE tg_id = {tg_id}''')
+            data1 = data1.fetchall()
+            if len(data1) > 0:
+                return True
+            else:
+                return False
+
+
+print(get_user_byers(113966137))
+
 
 
 def is_publish(id_lot):
@@ -61,10 +86,9 @@ def is_publish(id_lot):
 def get_lot(id_lot):
     with con:
         data1 = con.execute(f'''SELECT bd_auction_lots.name, bd_auction_lots.price, 
-                                      bd_auction_lots.date_finish, bd_auction_lots.id, bd_auction_photo.photo1, 
-                                      bd_auction_photo.photo2, bd_auction_photo.photo3 
-                                      FROM bd_auction_lots JOIN bd_auction_photo ON 
-                                      bd_auction_lots.id = bd_auction_photo.lot_id_id
+                                      bd_auction_lots.date_finish, bd_auction_lots.id, bd_auction_lots.photo1, 
+                                      bd_auction_lots.photo2, bd_auction_lots.photo3 
+                                      FROM bd_auction_lots
                                       WHERE bd_auction_lots.id = {id_lot}''')
         data1 = data1.fetchall()
     i = data1[0]
@@ -73,7 +97,11 @@ def get_lot(id_lot):
     dict_lot['price'] = i[1]
     dict_lot['time_finish'] = i[2]
     dict_lot['id'] = i[3]
-    dict_lot['photo'] = list(i[4:])
+    list_photo = []
+    for x in list(i[4:]):
+        if x != '':
+            list_photo.append(x)
+    dict_lot['photo'] = list_photo
     print(dict_lot)
     return dict_lot
 

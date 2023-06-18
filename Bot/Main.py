@@ -1,19 +1,31 @@
 import telebot
 from telebot import types
-from telebot.types import InlineKeyboardButton, InlineKeyboardMarkup
+from telebot.types import InlineKeyboardButton, InlineKeyboardMarkup, ReplyKeyboardMarkup, KeyboardButton
 import schedule
 import time
 import datetime
 import threading
 
-from Bot.sql_req import get_lots, is_publish, get_lot
+from Bot.sql_req import get_lots, is_publish, get_lot, get_user_byers, reg_user_byers
 
 bot = telebot.TeleBot('6236696473:AAH_OGgS5jBhtDC7ZRA8lJwXHHZkQCfxZwg')
 
 id_user = []
 chat_grups = -742710832
 
-"""Проверка базы данных на изменение"""
+"""Клавиатуры"""
+
+
+def keub_start():
+    keyb = ReplyKeyboardMarkup(resize_keyboard=True).add(KeyboardButton('Справочная Информация'))
+    return keyb
+
+
+def keub_reg():
+    keyb = InlineKeyboardMarkup(
+        *(types.InlineKeyboardButton('Ссылка для регистрации', url='http://127.0.0.1:8000/register/'),
+          types.InlineKeyboardButton('Отмена', callback_data=f'Отмена')))
+    return keyb
 
 
 def keyb_lot(id_lot, time_finish):
@@ -40,9 +52,13 @@ def keyb_lot2(id_lot, time_finish):
     but_auto = InlineKeyboardButton('Авто-ставка', callback_data=f'ast.10.{id_lot}')
     keyb.row(but_auto)
     keyb.row(*(types.InlineKeyboardButton('⏰', callback_data=f'*{time_finish}'),
-               types.InlineKeyboardButton('😱', callback_data='info')
+               types.InlineKeyboardButton('😱', callback_data='info'),
+               types.InlineKeyboardButton('🧳 информация по лоту', callback_data=f'dop{id_lot}')
                ))
     return keyb
+
+
+"""Проверка базы данных на изменение"""
 
 
 def post_lots():
@@ -82,18 +98,25 @@ def spam(message):
 
 @bot.message_handler(content_types=['text'])
 def start(message):
-    if message.text == '/start':
-        bot.send_message(message.chat.id, 'Здравствуйте! \n Вам надо зарегистрироваться')
-        bot.send_message(message.chat.id, 'описание')
-    if message.text == '/run':
-        if message.chat.id == chat_grups:
-            bot.send_message(message.chat.id, 'Работает')
+    print(message)
+    if message.text == '/start' and message.chat.id != chat_grups:
+        bot.send_message(message.chat.id, 'Приветствую', reply_markup=keyb_start)
+        bot.delete_message(message.chat.id, message.message_id)
+    elif message.text == 'Справочная Информация':
+        bot.send_message(message.chat.id, 'Информация о правилах пользования ботом')
+        bot.delete_message(message.chat.id, message.message_id)
+    elif message.text == '/reg' and message.chat.id != chat_grups:
+        bot.send_message(message.chat.id, 'Приветствую', reply_markup=keyb_start)
+        bot.delete_message(message.chat.id, message.message_id)
 
 
 @bot.callback_query_handler(func=lambda call: True)
 def query_handler(call):
     if call.data[0] == '#':
-        print(call.data[1:])
+        if get_user_byers(call.from_user.id):
+            pass
+        else:
+            reg_user_byers(call.from_user.id)
         lot = get_lot(call.data[1:])
         keyb = keyb_lot2(lot['id'], lot['time_finish'])
         bot.send_media_group(call.from_user.id,
@@ -116,18 +139,17 @@ def query_handler(call):
     elif call.data[0] == '$':
         list_data = call.data.split('.')
         print(list_data)
+    elif call.data[0:3] == 'dop':
+        bot.send_document(call.from_user.id, document=open('D:\Пайтон\Auction\Bot\Inform.rar', 'rb'))
 
 
-# def start_bot():
-#     print("Ready")
-#     bot.infinity_polling()
-#
-#
-# t1 = threading.Thread(target=start_bot)
-# t2 = threading.Thread(target=send_lot_in_group)
-#
-# t1.start()
-# t2.start()
+def start_bot():
+    print("Ready")
+    bot.infinity_polling()
 
-# print("Ready")
-# bot.infinity_polling()
+
+t1 = threading.Thread(target=start_bot)
+t2 = threading.Thread(target=send_lot_in_group)
+
+t1.start()
+t2.start()

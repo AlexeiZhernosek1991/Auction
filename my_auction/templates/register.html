@@ -5,7 +5,8 @@
     <h1> Регистрация продавцов на аукционе </h1>
     <form method="post">
         {% csrf_token %}
-        {{ form.as_p }}
+        {{ user_form.as_p }}
+        {{ profile_form.as_p }}
         <button type="submit">Зарегистрироваться</button>
     </form>
 </div>

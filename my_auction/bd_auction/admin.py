@@ -6,11 +6,12 @@ from .utils import get_name, MyCustomError
 
 class LotsAdmin(admin.ModelAdmin):
     def save_model(self, request, obj, form, change):
-        print(obj.id)
         if obj.id == None:
-            if getattr(obj, 'seller_id', None) is None:
-                obj.seller_id = request.user
+            obj.seller_id = request.user
             obj.save()
+            # accept = Lots_accept()
+            # lot_id =
+            # accept.lot_id = lot_id
         else:
             id_user = get_name(str(request.user))
             name_seller = Lots.objects.get(id=obj.id)
@@ -31,3 +32,7 @@ class LotsAdmin(admin.ModelAdmin):
 
 admin.site.register(Lots, LotsAdmin)
 admin.site.register(Bets)
+admin.site.register(InfoUser)
+admin.site.register(Lots_accept)
+admin.site.register(User_buyer)
+admin.site.register(Claim_message)
