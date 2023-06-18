@@ -6,42 +6,7 @@ from django.shortcuts import redirect, render
 from django.views.generic import CreateView
 
 from .form import RegisterForm, InfoForm
-from .models import InfoUser
-
-
-class Register(CreateView):
-    form_class = UserCreationForm
-    template_name = 'register.html'
-    success_url = 'http://127.0.0.1:8000/admin/'
-
-    def form_valid(self, form):
-        form.instance.is_staff = '1'
-        user = form.save()
-        login(self.request, user)
-        return redirect('http://127.0.0.1:8000/admin/')
-
-
-def f (request):
-    print(request.user)
-    if request.method == 'POST':
-        print(request.POST)
-        user_form = RegisterForm(request.POST, instance=request.user)
-        profile_form = InfoForm(request.POST, instance=request.user.infouser)
-        print(profile_form)
-        if user_form.is_valid() and profile_form.is_valid():
-            user_form.save()
-            profile_form.save()
-            messages.success(request, ('Your profile was successfully updated!'))
-            return redirect('http://127.0.0.1:8000/admin/')
-        else:
-            messages.error(request, ('Please correct the error below.'))
-    else:
-        user_form = RegisterForm(instance=request.user)
-        profile_form = InfoForm(instance=request.user.infouser)
-    return render(request, 'register.html', {
-        'user_form': user_form,
-        'profile_form': profile_form
-    })
+from .models import InfoUser, Reg_tg
 
 
 def update_profile(request):
@@ -52,10 +17,15 @@ def update_profile(request):
         else:
             messages.error(request, ('Please correct the error below.'))
         id_user = User.objects.get(username=str(request.POST['username']))
-        print(id_user.id)
+        try:
+            tg_id = Reg_tg.objects.get(username=str(request.POST['username_tg']))
+            tg_id = tg_id.id_tg
+        except:
+            tg_id = '@введен не верно'
         info_ = InfoUser(
             user_id=id_user,
-            username_tg=request.POST['username_tg']
+            username_tg=request.POST['username_tg'],
+            tg_id=tg_id
         )
         info_.save()
         return redirect('http://127.0.0.1:8000/admin/')
@@ -63,5 +33,5 @@ def update_profile(request):
         user_form = RegisterForm()
         profile_form = InfoForm()
         return render(request, 'register.html', {
-        'user_form': user_form,
-        'profile_form': profile_form})
+            'user_form': user_form,
+            'profile_form': profile_form})

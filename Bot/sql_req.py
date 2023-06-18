@@ -24,7 +24,7 @@ con = sl.connect('D:\Пайтон\Auction\my_auction\db.sqlite3', check_same_thr
 #
 # registration({"tg_id": 515215,"name": "KAtya","password":"mmaa1234"})
 
-def get_lots():
+def get_auctions():
     with con:
         data1 = con.execute(f'''SELECT bd_auction_lots.name, bd_auction_lots.price, 
                                    bd_auction_lots.date_finish, bd_auction_lots.id, bd_auction_lots.photo1, 
@@ -63,22 +63,21 @@ def reg_user_byers(tg_id):
 
 def get_user_byers(tg_id):
     with con:
-            data1 = con.execute(f'''SELECT * FROM bd_auction_user_buyer WHERE tg_id = {tg_id}''')
-            data1 = data1.fetchall()
-            if len(data1) > 0:
-                return True
-            else:
-                return False
+        data1 = con.execute(f'''SELECT * FROM bd_auction_user_buyer WHERE tg_id = {tg_id}''')
+        data1 = data1.fetchall()
+        if len(data1) > 0:
+            return True
+        else:
+            return False
 
 
-print(get_user_byers(113966137))
+# print(get_user_byers(113966137))
 
 
-
-def is_publish(id_lot):
-    com = f"UPDATE bd_auction_lots SET publication = ? WHERE id = ?"
-    with con:
-        con.execute(com, ('1', id_lot))
+# def is_publish(id_lot):
+#     com = f"UPDATE bd_auction_lots SET publication = ? WHERE id = ?"
+#     with con:
+#         con.execute(com, ('1', id_lot))
 
 
 # is_publish('1')
@@ -118,4 +117,39 @@ def get_name(name):
         if name in x:
             id_name = x[1]
     print(id_name)
+
+
 # get_name('jana')
+
+def reg_seller_tg(tg_id, username):
+    sql_insert = f"INSERT INTO bd_auction_reg_tg (username, id_tg) values(?,?)"
+    with con:
+        con.execute(sql_insert, ('@' + username, str(tg_id)))
+    return True
+
+
+def get_seller_tg(id_tg):
+    with con:
+        data1 = con.execute(f'''SELECT username, id_tg  FROM bd_auction_reg_tg WHERE id_tg = {id_tg}''')
+        data1 = data1.fetchall()
+        print(data1)
+    if len(data1) > 0:
+        return True
+    else:
+        return False
+
+
+# print(get_seller_tg(113966137))
+
+def tg_id_in_bdinfouser(id_tg):
+    with con:
+        data1 = con.execute(f'''SELECT username_tg,tg_id  FROM bd_auction_infouser WHERE tg_id = {id_tg}''')
+        data1 = data1.fetchall()
+        print(data1)
+    if len(data1) > 0:
+        return True
+    else:
+        return False
+
+
+print(tg_id_in_bdinfouser(1139661376))

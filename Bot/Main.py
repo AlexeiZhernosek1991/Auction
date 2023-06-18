@@ -6,7 +6,8 @@ import time
 import datetime
 import threading
 
-from Bot.sql_req import get_lots, is_publish, get_lot, get_user_byers, reg_user_byers
+from Bot.sql_req import  get_lot, get_user_byers, reg_user_byers, reg_seller_tg, get_seller_tg, \
+    tg_id_in_bdinfouser
 
 bot = telebot.TeleBot('6236696473:AAH_OGgS5jBhtDC7ZRA8lJwXHHZkQCfxZwg')
 
@@ -22,17 +23,17 @@ def keub_start():
 
 
 def keub_reg():
-    keyb = InlineKeyboardMarkup(
-        *(types.InlineKeyboardButton('Ссылка для регистрации', url='http://127.0.0.1:8000/register/'),
-          types.InlineKeyboardButton('Отмена', callback_data=f'Отмена')))
+    keyb = InlineKeyboardMarkup().add(
+        *(InlineKeyboardButton('Регистрация', url='http://127.0.0.1:8000/register'),
+          InlineKeyboardButton('Отмена', callback_data=f'Отмена')))
     return keyb
 
 
 def keyb_lot(id_lot, time_finish):
     keyb = InlineKeyboardMarkup()
-    keyb.add(*(types.InlineKeyboardButton('Участвовать', callback_data=f'#{id_lot}'),
-               types.InlineKeyboardButton('⏰', callback_data=f'*{time_finish}'),
-               types.InlineKeyboardButton('😱', callback_data='info')
+    keyb.add(*(InlineKeyboardButton('Участвовать', callback_data=f'#{id_lot}'),
+               InlineKeyboardButton('⏰', callback_data=f'*{time_finish}'),
+               InlineKeyboardButton('😱', callback_data='info')
                ))
     return keyb
 
@@ -51,31 +52,39 @@ def keyb_lot2(id_lot, time_finish):
     keyb.row(but_start)
     but_auto = InlineKeyboardButton('Авто-ставка', callback_data=f'ast.10.{id_lot}')
     keyb.row(but_auto)
-    keyb.row(*(types.InlineKeyboardButton('⏰', callback_data=f'*{time_finish}'),
-               types.InlineKeyboardButton('😱', callback_data='info'),
-               types.InlineKeyboardButton('🧳 информация по лоту', callback_data=f'dop{id_lot}')
+    keyb.row(*(InlineKeyboardButton('⏰', callback_data=f'*{time_finish}'),
+               InlineKeyboardButton('😱', callback_data='info'),
+               InlineKeyboardButton('🧳 информация по лоту', callback_data=f'dop{id_lot}')
                ))
     return keyb
+
+def keyb_start2(id_user):
+    if tg_id_in_bdinfouser(id_user):
+        keyb_start = InlineKeyboardMarkup().row(InlineKeyboardButton('Пополнить баланс', callback_data=''))
+
+
 
 
 """Проверка базы данных на изменение"""
 
 
 def post_lots():
-    chat_grup = -742710832
-    lots = get_lots()
-    if len(lots) < 1:
-        pass
-    else:
-        for lot in lots:
-            is_publish(lot['id'])
-            keyb = keyb_lot(lot['id'], lot['time_finish'])
-            bot.send_media_group(chat_grup,
-                                 [telebot.types.InputMediaPhoto(
-                                     open(f'D:\Пайтон\Auction\my_auction\media\{photo}', 'rb'))
-                                     for photo in lot['photo']])
-            bot.send_message(chat_grup, f'Название - {lot["name"]} \n'
-                                        f'стоимость - {lot["price"]} белоруских рублей', reply_markup=keyb)
+    pass
+    # chat_grup = -742710832
+    # lots = get_lots()
+    # if len(lots) < 1:
+    #     pass
+    # else:
+    #     pass
+    # for lot in lots:
+    #     is_publish(lot['id'])
+    #     keyb = keyb_lot(lot['id'], lot['time_finish'])
+    #     bot.send_media_group(chat_grup,
+    #                          [telebot.types.InputMediaPhoto(
+    #                              open(f'D:\Пайтон\Auction\my_auction\media\{photo}', 'rb'))
+    #                              for photo in lot['photo']])
+    #     bot.send_message(chat_grup, f'Название - {lot["name"]} \n'
+    #                                 f'стоимость - {lot["price"]} белоруских рублей', reply_markup=keyb)
 
 
 def send_lot_in_group():
@@ -100,14 +109,19 @@ def spam(message):
 def start(message):
     print(message)
     if message.text == '/start' and message.chat.id != chat_grups:
-        bot.send_message(message.chat.id, 'Приветствую', reply_markup=keyb_start)
-        bot.delete_message(message.chat.id, message.message_id)
+        bot.send_message(message.chat.id, 'Приветствую', reply_markup=keub_start())
+        # bot.delete_message(message.chat.id, message.message_id)
     elif message.text == 'Справочная Информация':
         bot.send_message(message.chat.id, 'Информация о правилах пользования ботом')
         bot.delete_message(message.chat.id, message.message_id)
     elif message.text == '/reg' and message.chat.id != chat_grups:
-        bot.send_message(message.chat.id, 'Приветствую', reply_markup=keyb_start)
+        bot.send_message(message.chat.id, 'Регистрация', reply_markup=keub_reg())
         bot.delete_message(message.chat.id, message.message_id)
+        if get_seller_tg(message.from_user.id):
+            pass
+        else:
+            reg_seller_tg(message.from_user.id, message.from_user.username)
+
 
 
 @bot.callback_query_handler(func=lambda call: True)
@@ -135,12 +149,16 @@ def query_handler(call):
         else:
             bot.answer_callback_query(call.id, f"Аукцион завершился", show_alert=True)
     elif call.data == 'info':
+        # print(call)
         bot.answer_callback_query(call.id, f"Справочная информация", show_alert=True)
     elif call.data[0] == '$':
         list_data = call.data.split('.')
         print(list_data)
     elif call.data[0:3] == 'dop':
         bot.send_document(call.from_user.id, document=open('D:\Пайтон\Auction\Bot\Inform.rar', 'rb'))
+    elif call.data == 'Отмена':
+        bot.delete_message(call.from_user.id, call.message.message_id)
+
 
 
 def start_bot():

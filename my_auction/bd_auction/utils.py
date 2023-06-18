@@ -38,3 +38,19 @@ class MyCustomError(Exception):
             return 'MyCustomError, {0} '.format(self.message)
         else:
             return 'Вы не можете изменять или удалять этот лот'
+
+
+class MyCustomError2(Exception):
+    def __init__(self, *args):
+        if args:
+            self.message = args[0]
+        else:
+            self.message = None
+
+    def __str__(self):
+        print('calling str')
+        if self.message:
+            return 'MyCustomError, {0} '.format(self.message)
+        else:
+            return 'Вы не можете изменять или удалять этот Аукцион'
+
